@@ -5,11 +5,12 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install base packages
 RUN apt update -y && apt install --no-install-recommends -y \
     xfce4 xfce4-goodies tigervnc-standalone-server novnc websockify sudo xterm init systemd snapd vim net-tools curl wget git tzdata \
-    dbus-x11 x11-utils x11-xserver-utils x11-apps software-properties-common \
+    dbus-x11 x11-utils x11-xserver-utils x11-apps software-properties-common gnupg ca-certificates \
     && apt clean && rm -rf /var/lib/apt/lists/*
 
-# Install Firefox from Mozilla PPA
-RUN add-apt-repository ppa:mozillateam/ppa -y && \
+# Install Firefox from Mozilla PPA (manual key addition to avoid gpg-agent issues)
+RUN wget -qO - https://ppa.launchpadcontent.net/mozillateam/ppa/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/mozillateam-archive-keyring.gpg && \
+    echo "deb [arch=amd64,arm64,armhf signed-by=/usr/share/keyrings/mozillateam-archive-keyring.gpg] https://ppa.launchpadcontent.net/mozillateam/ppa/ubuntu jammy main" | tee /etc/apt/sources.list.d/mozilla-ppa.list > /dev/null && \
     echo 'Package: *' >> /etc/apt/preferences.d/mozilla-firefox && \
     echo 'Pin: release o=LP-PPA-mozillateam' >> /etc/apt/preferences.d/mozilla-firefox && \
     echo 'Pin-Priority: 1001' >> /etc/apt/preferences.d/mozilla-firefox && \
