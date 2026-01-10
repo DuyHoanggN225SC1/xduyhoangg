@@ -37,7 +37,7 @@ RUN apt update -y && apt install -y wget tar && \
 
 # Set password (use build arg or env for dynamic, here default to 'password' - override with ARG)
 ARG VNC_PASSWORD=password
-RUN echo "$VNC_PASSWORD" | tigervncpasswd -f > /root/.vnc/passwd && \
+RUN echo "$VNC_PASSWORD" | vncpasswd -f > /root/.vnc/passwd && \
     chmod 600 /root/.vnc/passwd
 
 EXPOSE 5901 6080
