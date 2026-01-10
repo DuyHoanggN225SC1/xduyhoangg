@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install base packages
 RUN apt update -y && apt install --no-install-recommends -y \
-    xfce4 xfce4-goodies tigervnc-standalone-server novnc websockify sudo xterm init systemd snapd vim net-tools curl wget git tzdata \
+    xfce4 xfce4-goodies tigervnc-standalone-server tigervnc-common novnc websockify sudo xterm init systemd snapd vim net-tools curl wget git tzdata \
     dbus-x11 x11-utils x11-xserver-utils x11-apps software-properties-common gnupg ca-certificates \
     && apt clean && rm -rf /var/lib/apt/lists/*
 
@@ -37,7 +37,7 @@ RUN apt update -y && apt install -y wget tar && \
 
 # Set password (use build arg or env for dynamic, here default to 'password' - override with ARG)
 ARG VNC_PASSWORD=password
-RUN echo "$VNC_PASSWORD" | vncpasswd -f -stdin > /root/.vnc/passwd && \
+RUN echo "$VNC_PASSWORD" | tigervncpasswd -f > /root/.vnc/passwd && \
     chmod 600 /root/.vnc/passwd
 
 EXPOSE 5901 6080
