@@ -8,13 +8,13 @@ RUN apt update -y && apt install --no-install-recommends -y \
     dbus-x11 x11-utils x11-xserver-utils x11-apps software-properties-common gnupg ca-certificates \
     && apt clean && rm -rf /var/lib/apt/lists/*
 
-# Install Firefox from Mozilla PPA (manual key addition to avoid gpg-agent issues)
-RUN wget -qO - https://ppa.launchpadcontent.net/mozillateam/ppa/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/mozillateam-archive-keyring.gpg && \
-    echo "deb [arch=amd64,arm64,armhf signed-by=/usr/share/keyrings/mozillateam-archive-keyring.gpg] https://ppa.launchpadcontent.net/mozillateam/ppa/ubuntu jammy main" | tee /etc/apt/sources.list.d/mozilla-ppa.list > /dev/null && \
-    echo 'Package: *' >> /etc/apt/preferences.d/mozilla-firefox && \
-    echo 'Pin: release o=LP-PPA-mozillateam' >> /etc/apt/preferences.d/mozilla-firefox && \
-    echo 'Pin-Priority: 1001' >> /etc/apt/preferences.d/mozilla-firefox && \
-    echo 'Unattended-Upgrade::Allowed-Origins:: "LP-PPA-mozillateam:jammy";' | tee /etc/apt/apt.conf.d/51unattended-upgrades-firefox && \
+# Install Firefox from Official Mozilla Repository
+RUN install -d -m 0755 /etc/apt/keyrings && \
+    wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null && \
+    echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" | tee /etc/apt/sources.list.d/mozilla.list > /dev/null && \
+    echo 'Package: *' | tee /etc/apt/preferences.d/mozilla && \
+    echo 'Pin: origin packages.mozilla.org' >> /etc/apt/preferences.d/mozilla && \
+    echo 'Pin-Priority: 1000' >> /etc/apt/preferences.d/mozilla && \
     apt update -y && apt install -y firefox && \
     apt clean && rm -rf /var/lib/apt/lists/*
 
