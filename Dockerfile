@@ -6,6 +6,8 @@ RUN apt update -y && apt install --no-install-recommends -y \
     xfce4 \
     xfce4-goodies \
     tigervnc-standalone-server \
+    tigervnc-common \
+    tigervnc-tools \
     novnc \
     websockify \
     sudo \
