@@ -24,7 +24,24 @@ RUN apt update -y && apt install --no-install-recommends -y \
     python3 \
     python3-pip \
     wmctrl \
-    openssh-server  # <-- THÊM: openssh-server
+    openssh-server \
+    wget \
+    gnupg \
+    lsb-release  # <-- THÊM: Cho Grafana/Prometheus setup
+
+# <-- THÊM: Setup Grafana repo & install
+RUN wget -q -O - https://packages.grafana.com/gpg.key | gpg --dearmor -o /usr/share/keyrings/grafana.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/grafana.gpg] https://packages.grafana.com/oss/deb stable main" | tee /etc/apt/sources.list.d/grafana.list && \
+    apt update -y && apt install -y grafana && \
+    systemctl enable grafana-server
+
+# <-- THÊM: Install Prometheus node_exporter (cho system metrics)
+RUN wget https://github.com/prometheus/node_exporter/releases/download/v1.8.2/node_exporter-1.8.2.linux-amd64.tar.gz && \
+    tar xvfz node_exporter-1.8.2.linux-amd64.tar.gz && \
+    mv node_exporter-1.8.2.linux-amd64/node_exporter /usr/local/bin/ && \
+    rm -rf node_exporter-1.8.2.linux-amd64* && \
+    useradd --no-create-home --shell /bin/false node_exporter && \
+    chown node_exporter:node_exporter /usr/local/bin/node_exporter
 
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
     apt-get install -y nodejs
@@ -44,7 +61,7 @@ RUN apt update -y && apt install -y xubuntu-icon-theme
 RUN mkdir -p /root/.vnc
 RUN (echo 'hoang1234' && echo 'hoang1234') | vncpasswd && chmod 600 /root/.vnc/passwd
 
-# <-- THÊM: Setup SSH
+# Setup SSH
 RUN mkdir -p /var/run/sshd && \
     sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
     sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
@@ -92,14 +109,14 @@ EOF
 RUN echo '<!DOCTYPE html><html><head><title>noVNC</title><script>window.location.replace("vnc.html?autoconnect=1&resize=scale&fullscreen=1");</script></head><body></body></html>' > /usr/share/novnc/index.html
 RUN touch /root/.Xauthority
 
-# <-- THÊM: Expose SSH port
-EXPOSE 22
-EXPOSE 5901
-EXPOSE 6080
+# THÊM: Expose Grafana port
+EXPOSE 22 3000 5901 6080  # node_exporter mặc định 9100, có thể expose nếu cần
 
-# <-- SỬA: CMD để chạy SSH background + VNC
+# SỬA: CMD để chạy tất cả services (SSH, VNC, Grafana, node_exporter)
 CMD bash -c "unset SESSION_MANAGER && unset DBUS_SESSION_BUS_ADDRESS && \
     /usr/sbin/sshd -D & \
+    /usr/local/bin/node_exporter & \
+    systemctl start grafana-server && \
     vncserver -localhost no -geometry 1920x1080 -xstartup /root/.vnc/xstartup :1 && \
     openssl req -new -subj \"/C=JP\" -x509 -days 365 -nodes -out self.pem -keyout self.pem && \
     websockify -D --web=/usr/share/novnc/ --cert=self.pem 6080 localhost:5901 && \
