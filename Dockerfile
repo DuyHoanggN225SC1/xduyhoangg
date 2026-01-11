@@ -24,7 +24,8 @@ RUN apt update -y && apt install --no-install-recommends -y \
     neofetch \
     btop \
     python3 \
-    python3-pip
+    python3-pip \
+    wmctrl
 
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
     apt-get install -y nodejs
@@ -59,39 +60,40 @@ RUN echo '#!/bin/sh' > /root/.vnc/xstartup && \
     echo 'dbus-launch --exit-with-session xfce4-session' >> /root/.vnc/xstartup && \
     chmod +x /root/.vnc/xstartup
 
-# Autostart Firefox with specific URL
-RUN mkdir -p /root/.config/autostart && \
-    cat > /root/.config/autostart/firefox.desktop << 'EOF'
-[Desktop Entry]
-Type=Application
-Exec=firefox https://www.facebook.com/User.DuyHoangg
-Hidden=false
-NoDisplay=false
-X-GNOME-Autostart-enabled=true
-Name=Firefox Web Browser
-Comment=Web browser
-Icon=firefox
-Categories=Network;WebBrowser;
-EOF
-
 # Create note file
 RUN cat > /root/note.txt << 'EOF'
-Cần Thuê VPS/VNC giá rẻ ib
+Cần Thuê VNC giá rẻ ib
 Discord : duyhoangg.v2
 Fb : User.DuyHoangg
+Đủ Loại Server VNC Sigapore/Usa/Vn
 EOF
 
-# Autostart to open note file with mousepad
-RUN cat > /root/.config/autostart/note.desktop << 'EOF'
+# Create startup script for apps
+RUN cat > /root/start_apps.sh << 'EOF'
+#!/bin/bash
+sleep 5
+firefox https://www.facebook.com/User.DuyHoangg &
+sleep 3
+wmctrl -a "Firefox Web Browser" || wmctrl -a Firefox
+sleep 1
+mousepad /root/note.txt &
+sleep 2
+wmctrl -a Mousepad || wmctrl -a "Mousepad Text Editor"
+EOF
+RUN chmod +x /root/start_apps.sh
+
+# Autostart script
+RUN mkdir -p /root/.config/autostart && \
+    cat > /root/.config/autostart/start_apps.desktop << 'EOF'
 [Desktop Entry]
 Type=Application
-Exec=mousepad /root/note.txt
+Exec=/root/start_apps.sh
 Hidden=false
 NoDisplay=false
 X-GNOME-Autostart-enabled=true
-Name=Note
-Comment=Open Note
-Icon=text-editor
+Name=Start Apps
+Comment=Start Applications
+Icon=utilities-terminal
 Categories=Utility;
 EOF
 
