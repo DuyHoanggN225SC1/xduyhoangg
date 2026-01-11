@@ -8,7 +8,6 @@ RUN apt update -y && apt install --no-install-recommends -y \
     tigervnc-standalone-server \
     tigervnc-common \
     tigervnc-tools \
-    novnc \
     websockify \
     sudo \
     xterm \
@@ -42,6 +41,9 @@ RUN apt update -y && apt install -y firefox
 
 RUN apt update -y && apt install -y xubuntu-icon-theme
 
+# Install latest noVNC from GitHub
+RUN git clone https://github.com/novnc/noVNC.git /usr/share/novnc
+
 RUN mkdir -p /root/Pictures
 RUN wget -O /root/Pictures/background.jpg https://i.pinimg.com/736x/c9/c0/16/c9c0167d5aae25a2e21c6f13ce6b2ca9.jpg
 
@@ -60,7 +62,7 @@ sleep 3 && xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace
 EOF
 RUN chmod +x /root/.vnc/xstartup
 
-RUN echo '<!DOCTYPE html><html><head><title>noVNC</title><script>window.location.replace("vnc.html?autoconnect=1&resize=scale&fullscreen=1");</script></head><body></body></html>' > /usr/share/novnc/index.html
+RUN echo '<!DOCTYPE html><html><head><title>noVNC</title><script>window.location.replace("vnc.html?autoconnect=true&password=hoang1234&resize=scale&fullscreen=1");</script></head><body></body></html>' > /usr/share/novnc/index.html
 
 RUN touch /root/.Xauthority
 
@@ -68,6 +70,5 @@ EXPOSE 5901
 EXPOSE 6080
 
 CMD bash -c "vncserver -localhost no -geometry 1920x1080 && \
-    openssl req -new -subj \"/C=JP\" -x509 -days 365 -nodes -out self.pem -keyout self.pem && \
-    websockify -D --web=/usr/share/novnc/ --cert=self.pem 6080 localhost:5901 && \
+    websockify -D --web=/usr/share/novnc/ 6080 localhost:5901 && \
     tail -f /dev/null"
