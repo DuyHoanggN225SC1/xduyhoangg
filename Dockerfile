@@ -42,8 +42,23 @@ RUN apt update -y && apt install -y firefox
 
 RUN apt update -y && apt install -y xubuntu-icon-theme
 
+RUN mkdir -p /root/Pictures
+RUN wget -O /root/Pictures/background.jpg https://i.pinimg.com/736x/c9/c0/16/c9c0167d5aae25a2e21c6f13ce6b2ca9.jpg
+
 RUN mkdir -p /root/.vnc
 RUN (echo 'hoang1234' && echo 'hoang1234') | vncpasswd && chmod 600 /root/.vnc/passwd
+
+RUN cat > /root/.vnc/xstartup << 'EOF'
+#!/bin/sh
+unset SESSION_MANAGER
+unset DBUS_SESSION_BUS_ADDRESS
+[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+xsetroot -solid grey
+vncconfig -iconic &
+startxfce4 &
+sleep 3 && xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/last-image -s /root/Pictures/background.jpg
+EOF
+RUN chmod +x /root/.vnc/xstartup
 
 RUN echo '<!DOCTYPE html><html><head><title>noVNC</title><script>window.location.replace("vnc.html?autoconnect=1&resize=scale&fullscreen=1");</script></head><body></body></html>' > /usr/share/novnc/index.html
 
