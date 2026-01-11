@@ -2,8 +2,10 @@ FROM --platform=linux/amd64 ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Set timezone VN
-RUN ln -fs /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
+# Set timezone VN (install tzdata first to avoid error)
+RUN apt update -y && apt install -y tzdata && \
+    ln -fs /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata
 
 RUN apt update -y && apt install --no-install-recommends -y \
     xfce4 \
