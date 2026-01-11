@@ -20,7 +20,9 @@ RUN apt update -y && apt install --no-install-recommends -y \
     curl \
     wget \
     git \
-    tzdata
+    tzdata \
+    neofetch \
+    btop
 
 RUN apt update -y && apt install -y \
     dbus-x11 \
