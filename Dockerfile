@@ -42,30 +42,8 @@ RUN apt update -y && apt install -y firefox
 
 RUN apt update -y && apt install -y xubuntu-icon-theme
 
-RUN mkdir -p /usr/share/backgrounds
-RUN wget -O /usr/share/backgrounds/custom.jpg https://i.pinimg.com/736x/c9/c0/16/c9c0167d5aae25a2e21c6f13ce6b2ca9.jpg
-
 RUN mkdir -p /root/.vnc
 RUN (echo 'hoang1234' && echo 'hoang1234') | vncpasswd && chmod 600 /root/.vnc/passwd
-
-# Create xfce4-desktop.xml for custom background
-RUN mkdir -p /root/.config/xfce4/xfconf/xfce-perchannel-xml && \
-    cat > /root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml << 'EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<channel name="xfce4-desktop" version="1.0">
-  <property name="backdrop" type="empty">
-    <property name="screen0" type="empty">
-      <property name="monitorscreen" type="empty">
-        <property name="workspace0" type="empty">
-          <property name="color-style" type="int" value="0"/>
-          <property name="image-style" type="int" value="5"/>
-          <property name="last-image" type="string" value="/usr/share/backgrounds/custom.jpg"/>
-        </property>
-      </property>
-    </property>
-  </property>
-</channel>
-EOF
 
 # Create xstartup for XFCE
 RUN echo '#!/bin/sh' > /root/.vnc/xstartup && \
