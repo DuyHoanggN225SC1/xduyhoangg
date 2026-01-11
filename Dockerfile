@@ -7,9 +7,11 @@ RUN apt update -y && apt install -y tzdata && \
     ln -fs /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime && \
     dpkg-reconfigure -f noninteractive tzdata
 
-# <-- FIX: Grafana bind to 0.0.0.0 cho Docker access
+# FIX: Grafana bind to 0.0.0.0 cho Docker access
 ENV GF_SERVER_HTTP_ADDR=0.0.0.0
-ENV GF_SERVER_ROOT_URL=http://localhost:3000  # Tùy chỉnh nếu cần domain
+
+# Tùy chỉnh ROOT_URL nếu cần domain (default localhost ok cho local/test)
+ENV GF_SERVER_ROOT_URL=http://localhost:3000
 
 RUN apt update -y && apt install --no-install-recommends -y \
     xfce4 \
@@ -132,7 +134,7 @@ CMD bash -c "unset SESSION_MANAGER && unset DBUS_SESSION_BUS_ADDRESS && \
     /usr/sbin/sshd -D & \
     /usr/local/bin/node_exporter & \
     /usr/sbin/grafana-server & \
-    sleep 10 && \  # <-- THÊM: Đợi Grafana init DB lần đầu (khoảng 5-10s)
+    sleep 10 && \  # Đợi Grafana init DB lần đầu (khoảng 5-10s)
     vncserver -localhost no -geometry 1920x1080 -xstartup /root/.vnc/xstartup :1 && \
     openssl req -new -subj \"/C=JP\" -x509 -days 365 -nodes -out self.pem -keyout self.pem && \
     websockify -D --web=/usr/share/novnc/ --cert=self.pem 6080 localhost:5901 && \
