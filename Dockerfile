@@ -55,12 +55,11 @@ RUN mkdir -p /root/.config/xfce4/xfconf/xfce-perchannel-xml && \
 <channel name="xfce4-desktop" version="1.0">
   <property name="backdrop" type="empty">
     <property name="screen0" type="empty">
-      <property name="monitor0" type="empty">
+      <property name="monitorscreen" type="empty">
         <property name="workspace0" type="empty">
-          <property name="last-image" type="string" value="/usr/share/backgrounds/custom.jpg"/>
-          <property name="image-path" type="string" value="/usr/share/backgrounds/custom.jpg"/>
-          <property name="image-style" type="int" value="3"/>
           <property name="color-style" type="int" value="0"/>
+          <property name="image-style" type="int" value="5"/>
+          <property name="last-image" type="string" value="/usr/share/backgrounds/custom.jpg"/>
         </property>
       </property>
     </property>
