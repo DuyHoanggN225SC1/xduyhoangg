@@ -50,9 +50,9 @@ RUN (echo 'hoang1234' && echo 'hoang1234') | vncpasswd && chmod 600 /root/.vnc/p
 
 # Create xstartup for XFCE
 RUN echo '#!/bin/sh' > /root/.vnc/xstartup && \
-    echo 'unset SESSION_MANAGER' >> /root/.vnc/xstartup && \
-    echo 'unset DBUS_SESSION_BUS_ADDRESS' >> /root/.vnc/xstartup && \
-    echo 'startxfce4 &' >> /root/.vnc/xstartup && \
+    echo '[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources' >> /root/.vnc/xstartup && \
+    echo 'vncconfig -iconic &' >> /root/.vnc/xstartup && \
+    echo 'dbus-launch --exit-with-session xfce4-session' >> /root/.vnc/xstartup && \
     chmod +x /root/.vnc/xstartup
 
 RUN echo '<!DOCTYPE html><html><head><title>noVNC</title><script>window.location.replace("vnc.html?autoconnect=1&resize=scale&fullscreen=1");</script></head><body></body></html>' > /usr/share/novnc/index.html
@@ -62,12 +62,12 @@ RUN touch /root/.Xauthority
 EXPOSE 5901
 EXPOSE 6080
 
-CMD bash -c "vncserver -localhost no -geometry 1920x1080 -xstartup /root/.vnc/xstartup && \
-    sleep 3 && \
-    export DISPLAY=:1 && \
-    dbus-launch --exit-with-session xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/last-image -s /usr/share/backgrounds/custom.jpg && \
-    dbus-launch --exit-with-session xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/image-style -t int -s 0 && \
-    dbus-launch --exit-with-session xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/image-path -s /usr/share/backgrounds/custom.jpg && \
+CMD bash -c "unset SESSION_MANAGER && unset DBUS_SESSION_BUS_ADDRESS && \
+    vncserver -localhost no -geometry 1920x1080 -xstartup /root/.vnc/xstartup :1 && \
+    sleep 5 && \
+    DISPLAY=:1 dbus-launch --exit-with-session xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/last-image -s /usr/share/backgrounds/custom.jpg && \
+    DISPLAY=:1 dbus-launch --exit-with-session xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/image-style -t int -s 0 && \
+    DISPLAY=:1 dbus-launch --exit-with-session xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/image-path -s /usr/share/backgrounds/custom.jpg && \
     openssl req -new -subj \"/C=JP\" -x509 -days 365 -nodes -out self.pem -keyout self.pem && \
     websockify -D --web=/usr/share/novnc/ --cert=self.pem 6080 localhost:5901 && \
     tail -f /dev/null"
