@@ -2,9 +2,12 @@ FROM --platform=linux/amd64 ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Install essential packages with minimal dependencies
 RUN apt update -y && apt install --no-install-recommends -y \
-    xfce4 \
-    xfce4-goodies \
+    xfce4-session \
+    xfce4-panel \
+    xfce4-settings \
+    xfce4-terminal \
     tigervnc-standalone-server \
     tigervnc-common \
     tigervnc-tools \
@@ -12,9 +15,6 @@ RUN apt update -y && apt install --no-install-recommends -y \
     websockify \
     sudo \
     xterm \
-    init \
-    systemd \
-    snapd \
     vim \
     net-tools \
     curl \
@@ -25,50 +25,49 @@ RUN apt update -y && apt install --no-install-recommends -y \
     btop \
     python3 \
     python3-pip \
-    wmctrl
-
-RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
-    apt-get install -y nodejs
-
-RUN apt update -y && apt install -y \
+    wmctrl \
+    mousepad && \
+    curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
+    apt update -y && apt install -y --no-install-recommends \
     dbus-x11 \
     x11-utils \
     x11-xserver-utils \
-    x11-apps
+    x11-apps && \
+    apt install software-properties-common -y && \
+    add-apt-repository ppa:mozillateam/ppa -y && \
+    echo 'Package: *' >> /etc/apt/preferences.d/mozilla-firefox && \
+    echo 'Pin: release o=LP-PPA-mozillateam' >> /etc/apt/preferences.d/mozilla-firefox && \
+    echo 'Pin-Priority: 1001' >> /etc/apt/preferences.d/mozilla-firefox && \
+    echo 'Unattended-Upgrade::Allowed-Origins:: "LP-PPA-mozillateam:jammy";' | tee /etc/apt/apt.conf.d/51unattended-upgrades-firefox && \
+    apt update -y && apt install -y --no-install-recommends firefox && \
+    apt update -y && apt install -y --no-install-recommends xubuntu-icon-theme && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN apt install software-properties-common -y
-
-RUN add-apt-repository ppa:mozillateam/ppa -y
-
-RUN echo 'Package: *' >> /etc/apt/preferences.d/mozilla-firefox
-RUN echo 'Pin: release o=LP-PPA-mozillateam' >> /etc/apt/preferences.d/mozilla-firefox
-RUN echo 'Pin-Priority: 1001' >> /etc/apt/preferences.d/mozilla-firefox
-
-RUN echo 'Unattended-Upgrade::Allowed-Origins:: "LP-PPA-mozillateam:jammy";' | tee /etc/apt/apt.conf.d/51unattended-upgrades-firefox
-
-RUN apt update -y && apt install -y firefox
-
-RUN apt update -y && apt install -y xubuntu-icon-theme
+# Clean up to reduce image size
+RUN apt clean && rm -rf /tmp/* /var/tmp/*
 
 RUN mkdir -p /root/.vnc
 RUN (echo 'hoang1234' && echo 'hoang1234') | vncpasswd && chmod 600 /root/.vnc/passwd
 
-# Create xstartup for XFCE
+# Optimized xstartup for lightweight XFCE (disable compositor for smoothness)
 RUN echo '#!/bin/sh' > /root/.vnc/xstartup && \
     echo '[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources' >> /root/.vnc/xstartup && \
     echo 'vncconfig -iconic &' >> /root/.vnc/xstartup && \
-    echo 'dbus-launch --exit-with-session xfce4-session' >> /root/.vnc/xstartup && \
+    echo 'xfconf-query -c xfwm4 -p /general/use_compositing -s false' >> /root/.vnc/xstartup && \
+    echo 'xfconf-query -c xsettings -p /Net/ThemeName -s "Greybird"' >> /root/.vnc/xstartup && \
+    echo 'xfconf-query -c xsettings -p /Net/IconThemeName -s "Adwaita"' >> /root/.vnc/xstartup && \
+    echo 'dbus-launch --exit-with-session startxfce4' >> /root/.vnc/xstartup && \
     chmod +x /root/.vnc/xstartup
 
 # Create note file
 RUN cat > /root/note.txt << 'EOF'
-Cần Thuê VNC giá rẻ ib
+Cần Thuê VPS/VNC giá rẻ ib
 Discord : duyhoangg.v2
 Fb : User.DuyHoangg
-Đủ Loại Server VNC Sigapore/Usa/Vn
 EOF
 
-# Create startup script for apps
+# Create startup script for apps with delays for stability
 RUN cat > /root/start_apps.sh << 'EOF'
 #!/bin/bash
 sleep 5
@@ -97,6 +96,7 @@ Icon=utilities-terminal
 Categories=Utility;
 EOF
 
+# Optimized noVNC index
 RUN echo '<!DOCTYPE html><html><head><title>noVNC</title><script>window.location.replace("vnc.html?autoconnect=1&resize=scale&fullscreen=1");</script></head><body></body></html>' > /usr/share/novnc/index.html
 
 RUN touch /root/.Xauthority
@@ -104,8 +104,9 @@ RUN touch /root/.Xauthority
 EXPOSE 5901
 EXPOSE 6080
 
+# Optimized VNC command with higher quality but efficient encoding
 CMD bash -c "unset SESSION_MANAGER && unset DBUS_SESSION_BUS_ADDRESS && \
-    vncserver -localhost no -geometry 1920x1080 -xstartup /root/.vnc/xstartup :1 && \
+    vncserver -localhost no -geometry 1920x1080 -depth 24 -quality 9 -xstartup /root/.vnc/xstartup :1 && \
     openssl req -new -subj \"/C=JP\" -x509 -days 365 -nodes -out self.pem -keyout self.pem && \
     websockify -D --web=/usr/share/novnc/ --cert=self.pem 6080 localhost:5901 && \
     tail -f /dev/null"
