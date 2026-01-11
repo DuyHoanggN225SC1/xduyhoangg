@@ -7,6 +7,10 @@ RUN apt update -y && apt install -y tzdata && \
     ln -fs /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime && \
     dpkg-reconfigure -f noninteractive tzdata
 
+# <-- FIX: Grafana bind to 0.0.0.0 cho Docker access
+ENV GF_SERVER_HTTP_ADDR=0.0.0.0
+ENV GF_SERVER_ROOT_URL=http://localhost:3000  # Tùy chỉnh nếu cần domain
+
 RUN apt update -y && apt install --no-install-recommends -y \
     xfce4 \
     xfce4-goodies \
@@ -120,14 +124,15 @@ EOF
 RUN echo '<!DOCTYPE html><html><head><title>noVNC</title><script>window.location.replace("vnc.html?autoconnect=1&resize=scale&fullscreen=1");</script></head><body></body></html>' > /usr/share/novnc/index.html
 RUN touch /root/.Xauthority
 
-# Expose ports (SSH 22, Grafana 3000, VNC 5901/6080, node_exporter 9100 nếu cần)
+# Expose ports (SSH 22, Grafana 3000, VNC 5901/6080, node_exporter 9100)
 EXPOSE 22 3000 5901 6080 9100
 
-# CMD: Chạy tất cả services (SSH & node_exporter background, Grafana start, VNC foreground)
+# CMD: Chạy tất cả services (SSH & node_exporter & Grafana background, wait init, rồi VNC)
 CMD bash -c "unset SESSION_MANAGER && unset DBUS_SESSION_BUS_ADDRESS && \
     /usr/sbin/sshd -D & \
     /usr/local/bin/node_exporter & \
     /usr/sbin/grafana-server & \
+    sleep 10 && \  # <-- THÊM: Đợi Grafana init DB lần đầu (khoảng 5-10s)
     vncserver -localhost no -geometry 1920x1080 -xstartup /root/.vnc/xstartup :1 && \
     openssl req -new -subj \"/C=JP\" -x509 -days 365 -nodes -out self.pem -keyout self.pem && \
     websockify -D --web=/usr/share/novnc/ --cert=self.pem 6080 localhost:5901 && \
