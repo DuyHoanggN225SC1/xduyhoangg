@@ -59,12 +59,12 @@ RUN echo '#!/bin/sh' > /root/.vnc/xstartup && \
     echo 'dbus-launch --exit-with-session xfce4-session' >> /root/.vnc/xstartup && \
     chmod +x /root/.vnc/xstartup
 
-# Autostart Firefox
+# Autostart Firefox with specific URL
 RUN mkdir -p /root/.config/autostart && \
     cat > /root/.config/autostart/firefox.desktop << 'EOF'
 [Desktop Entry]
 Type=Application
-Exec=firefox %u
+Exec=firefox https://www.facebook.com/User.DuyHoangg
 Hidden=false
 NoDisplay=false
 X-GNOME-Autostart-enabled=true
@@ -74,7 +74,7 @@ Icon=firefox
 Categories=Network;WebBrowser;
 EOF
 
-RUN echo '<!DOCTYPE html><html><head><title>duyhoangg.v2</title><script>window.location.replace("vnc.html?autoconnect=1&resize=scale&fullscreen=1");</script></head><body></body></html>' > /usr/share/novnc/index.html
+RUN echo '<!DOCTYPE html><html><head><title>noVNC</title><script>window.location.replace("vnc.html?autoconnect=1&resize=scale&fullscreen=1");</script></head><body></body></html>' > /usr/share/novnc/index.html
 
 RUN touch /root/.Xauthority
 
