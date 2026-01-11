@@ -64,10 +64,10 @@ EXPOSE 6080
 
 CMD bash -c "unset SESSION_MANAGER && unset DBUS_SESSION_BUS_ADDRESS && \
     vncserver -localhost no -geometry 1920x1080 -xstartup /root/.vnc/xstartup :1 && \
-    sleep 5 && \
-    DISPLAY=:1 dbus-launch --exit-with-session xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/last-image -s /usr/share/backgrounds/custom.jpg && \
-    DISPLAY=:1 dbus-launch --exit-with-session xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/image-style -t int -s 0 && \
-    DISPLAY=:1 dbus-launch --exit-with-session xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/image-path -s /usr/share/backgrounds/custom.jpg && \
+    sleep 10 && \
+    DISPLAY=:1 dbus-launch --exit-with-session xfconf-query --create -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/last-image -t string -s /usr/share/backgrounds/custom.jpg && \
+    DISPLAY=:1 dbus-launch --exit-with-session xfconf-query --create -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/image-style -t int -s 0 && \
+    DISPLAY=:1 dbus-launch --exit-with-session xfconf-query --create -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/image-path -t string -s /usr/share/backgrounds/custom.jpg && \
     openssl req -new -subj \"/C=JP\" -x509 -days 365 -nodes -out self.pem -keyout self.pem && \
     websockify -D --web=/usr/share/novnc/ --cert=self.pem 6080 localhost:5901 && \
     tail -f /dev/null"
