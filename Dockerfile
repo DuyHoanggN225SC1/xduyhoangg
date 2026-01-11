@@ -34,13 +34,6 @@ RUN apt update -y && apt install --no-install-recommends -y \
     lsb-release
 # Install Netdata
 RUN wget -O /tmp/netdata-kickstart.sh https://get.netdata.cloud/kickstart.sh && sh /tmp/netdata-kickstart.sh --release-channel stable --non-interactive
-# Install Prometheus node_exporter (cho system metrics)
-RUN wget https://github.com/prometheus/node_exporter/releases/download/v1.8.2/node_exporter-1.8.2.linux-amd64.tar.gz && \
-    tar xvfz node_exporter-1.8.2.linux-amd64.tar.gz && \
-    mv node_exporter-1.8.2.linux-amd64/node_exporter /usr/local/bin/ && \
-    rm -rf node_exporter-1.8.2.linux-amd64* && \
-    useradd --no-create-home --shell /bin/false node_exporter && \
-    chown node_exporter:node_exporter /usr/local/bin/node_exporter
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
     apt-get install -y nodejs
 RUN apt update -y && apt install -y \
@@ -104,12 +97,11 @@ Categories=Utility;
 EOF
 RUN echo '<!DOCTYPE html><html><head><title>noVNC</title><script>window.location.replace("vnc.html?autoconnect=1&resize=scale&fullscreen=1");</script></head><body></body></html>' > /usr/share/novnc/index.html
 RUN touch /root/.Xauthority
-# Expose ports (SSH 22, Netdata 19999, VNC 5901/6080, node_exporter 9100)
-EXPOSE 22 19999 5901 6080 9100
-# CMD: Chạy tất cả services (SSH & node_exporter & Netdata background, wait init, rồi VNC)
+# Expose ports (SSH 22, Netdata 19999, VNC 5901/6080)
+EXPOSE 22 19999 5901 6080
+# CMD: Chạy tất cả services (SSH & Netdata background, wait init, rồi VNC)
 CMD bash -c "unset SESSION_MANAGER && unset DBUS_SESSION_BUS_ADDRESS && \
     /usr/sbin/sshd -D & \
-    /usr/local/bin/node_exporter & \
     /usr/sbin/netdata & \
     sleep 10 && \
     # Đợi Netdata init (khoảng 5-10s) \
