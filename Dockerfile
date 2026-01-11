@@ -34,6 +34,8 @@ RUN apt update -y && apt install --no-install-recommends -y \
     lsb-release
 # Install Netdata
 RUN wget -O /tmp/netdata-kickstart.sh https://get.netdata.cloud/kickstart.sh && sh /tmp/netdata-kickstart.sh --release-channel stable --non-interactive
+# Suppress Netdata cloud config warning
+RUN mkdir -p /var/lib/netdata/cloud.d/ && touch /var/lib/netdata/cloud.d/cloud.conf
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
     apt-get install -y nodejs
 RUN apt update -y && apt install -y \
