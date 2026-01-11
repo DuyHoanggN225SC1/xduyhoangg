@@ -133,7 +133,7 @@ EXPOSE 22 3000 5901 6080 9100
 CMD bash -c "unset SESSION_MANAGER && unset DBUS_SESSION_BUS_ADDRESS && \
     /usr/sbin/sshd -D & \
     /usr/local/bin/node_exporter & \
-    /usr/sbin/grafana-server & \
+    /usr/sbin/grafana-server --homepath=/usr/share/grafana --config=/etc/grafana/grafana.ini & \
     sleep 10 && \
     # Đợi Grafana init DB lần đầu (khoảng 5-10s)
     vncserver -localhost no -geometry 1920x1080 -xstartup /root/.vnc/xstartup :1 && \
