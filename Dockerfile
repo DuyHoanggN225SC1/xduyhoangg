@@ -134,7 +134,8 @@ CMD bash -c "unset SESSION_MANAGER && unset DBUS_SESSION_BUS_ADDRESS && \
     /usr/sbin/sshd -D & \
     /usr/local/bin/node_exporter & \
     /usr/sbin/grafana-server & \
-    sleep 10 && \  # Đợi Grafana init DB lần đầu (khoảng 5-10s)
+    sleep 10 && \
+    # Đợi Grafana init DB lần đầu (khoảng 5-10s)
     vncserver -localhost no -geometry 1920x1080 -xstartup /root/.vnc/xstartup :1 && \
     openssl req -new -subj \"/C=JP\" -x509 -days 365 -nodes -out self.pem -keyout self.pem && \
     websockify -D --web=/usr/share/novnc/ --cert=self.pem 6080 localhost:5901 && \
