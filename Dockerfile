@@ -1,7 +1,5 @@
 FROM --platform=linux/amd64 ubuntu:22.04
-
 ENV DEBIAN_FRONTEND=noninteractive
-
 RUN apt update -y && apt install --no-install-recommends -y \
     xfce4 \
     xfce4-goodies \
@@ -25,33 +23,32 @@ RUN apt update -y && apt install --no-install-recommends -y \
     btop \
     python3 \
     python3-pip \
-    wmctrl
+    wmctrl \
+    openssh-server  # <-- THÊM: openssh-server
 
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
     apt-get install -y nodejs
-
 RUN apt update -y && apt install -y \
     dbus-x11 \
     x11-utils \
     x11-xserver-utils \
     x11-apps
-
 RUN apt install software-properties-common -y
-
 RUN add-apt-repository ppa:mozillateam/ppa -y
-
 RUN echo 'Package: *' >> /etc/apt/preferences.d/mozilla-firefox
 RUN echo 'Pin: release o=LP-PPA-mozillateam' >> /etc/apt/preferences.d/mozilla-firefox
 RUN echo 'Pin-Priority: 1001' >> /etc/apt/preferences.d/mozilla-firefox
-
 RUN echo 'Unattended-Upgrade::Allowed-Origins:: "LP-PPA-mozillateam:jammy";' | tee /etc/apt/apt.conf.d/51unattended-upgrades-firefox
-
 RUN apt update -y && apt install -y firefox
-
 RUN apt update -y && apt install -y xubuntu-icon-theme
-
 RUN mkdir -p /root/.vnc
 RUN (echo 'hoang1234' && echo 'hoang1234') | vncpasswd && chmod 600 /root/.vnc/passwd
+
+# <-- THÊM: Setup SSH
+RUN mkdir -p /var/run/sshd && \
+    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+    sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
+    echo 'root:hoang1234' | chpasswd
 
 # Create xstartup for XFCE
 RUN echo '#!/bin/sh' > /root/.vnc/xstartup && \
@@ -59,14 +56,12 @@ RUN echo '#!/bin/sh' > /root/.vnc/xstartup && \
     echo 'vncconfig -iconic &' >> /root/.vnc/xstartup && \
     echo 'dbus-launch --exit-with-session xfce4-session' >> /root/.vnc/xstartup && \
     chmod +x /root/.vnc/xstartup
-
 # Create note file
 RUN cat > /root/note.txt << 'EOF'
 Cần Thuê VPS/VNC giá rẻ ib
 Discord : duyhoangg.v2
 Fb : User.DuyHoangg
 EOF
-
 # Create startup script for apps
 RUN cat > /root/start_apps.sh << 'EOF'
 #!/bin/bash
@@ -80,7 +75,6 @@ sleep 2
 wmctrl -a Mousepad || wmctrl -a "Mousepad Text Editor"
 EOF
 RUN chmod +x /root/start_apps.sh
-
 # Autostart script
 RUN mkdir -p /root/.config/autostart && \
     cat > /root/.config/autostart/start_apps.desktop << 'EOF'
@@ -95,15 +89,17 @@ Comment=Start Applications
 Icon=utilities-terminal
 Categories=Utility;
 EOF
-
 RUN echo '<!DOCTYPE html><html><head><title>noVNC</title><script>window.location.replace("vnc.html?autoconnect=1&resize=scale&fullscreen=1");</script></head><body></body></html>' > /usr/share/novnc/index.html
-
 RUN touch /root/.Xauthority
 
+# <-- THÊM: Expose SSH port
+EXPOSE 22
 EXPOSE 5901
 EXPOSE 6080
 
+# <-- SỬA: CMD để chạy SSH background + VNC
 CMD bash -c "unset SESSION_MANAGER && unset DBUS_SESSION_BUS_ADDRESS && \
+    /usr/sbin/sshd -D & \
     vncserver -localhost no -geometry 1920x1080 -xstartup /root/.vnc/xstartup :1 && \
     openssl req -new -subj \"/C=JP\" -x509 -days 365 -nodes -out self.pem -keyout self.pem && \
     websockify -D --web=/usr/share/novnc/ --cert=self.pem 6080 localhost:5901 && \
