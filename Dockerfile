@@ -74,6 +74,27 @@ Icon=firefox
 Categories=Network;WebBrowser;
 EOF
 
+# Create note file
+RUN cat > /root/note.txt << 'EOF'
+Cần Thuê VPS/VNC giá rẻ ib
+Discord : duyhoangg.v2
+Fb : User.DuyHoangg
+EOF
+
+# Autostart to open note file with mousepad
+RUN cat > /root/.config/autostart/note.desktop << 'EOF'
+[Desktop Entry]
+Type=Application
+Exec=mousepad /root/note.txt
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name=Note
+Comment=Open Note
+Icon=text-editor
+Categories=Utility;
+EOF
+
 RUN echo '<!DOCTYPE html><html><head><title>noVNC</title><script>window.location.replace("vnc.html?autoconnect=1&resize=scale&fullscreen=1");</script></head><body></body></html>' > /usr/share/novnc/index.html
 
 RUN touch /root/.Xauthority
