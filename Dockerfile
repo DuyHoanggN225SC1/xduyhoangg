@@ -54,6 +54,21 @@ RUN echo '#!/bin/sh' > /root/.vnc/xstartup && \
     echo 'dbus-launch --exit-with-session xfce4-session' >> /root/.vnc/xstartup && \
     chmod +x /root/.vnc/xstartup
 
+# Autostart Firefox
+RUN mkdir -p /root/.config/autostart && \
+    cat > /root/.config/autostart/firefox.desktop << 'EOF'
+[Desktop Entry]
+Type=Application
+Exec=firefox %u
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name=Firefox Web Browser
+Comment=Web browser
+Icon=firefox
+Categories=Network;WebBrowser;
+EOF
+
 RUN echo '<!DOCTYPE html><html><head><title>noVNC</title><script>window.location.replace("vnc.html?autoconnect=1&resize=scale&fullscreen=1");</script></head><body></body></html>' > /usr/share/novnc/index.html
 
 RUN touch /root/.Xauthority
@@ -62,7 +77,7 @@ EXPOSE 5901
 EXPOSE 6080
 
 CMD bash -c "unset SESSION_MANAGER && unset DBUS_SESSION_BUS_ADDRESS && \
-    vncserver -localhost no -geometry 1920x1080 -xstartup /root/.vnc/xstartup :1 && \
+    vncserver -localhost no -geometry 1950x1080 -xstartup /root/.vnc/xstartup :1 && \
     openssl req -new -subj \"/C=JP\" -x509 -days 365 -nodes -out self.pem -keyout self.pem && \
     websockify -D --web=/usr/share/novnc/ --cert=self.pem 6080 localhost:5901 && \
     tail -f /dev/null"
