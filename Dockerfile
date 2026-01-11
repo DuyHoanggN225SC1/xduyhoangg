@@ -48,6 +48,26 @@ RUN wget -O /usr/share/backgrounds/custom.jpg https://i.pinimg.com/736x/c9/c0/16
 RUN mkdir -p /root/.vnc
 RUN (echo 'hoang1234' && echo 'hoang1234') | vncpasswd && chmod 600 /root/.vnc/passwd
 
+# Create xfce4-desktop.xml for custom background
+RUN mkdir -p /root/.config/xfce4/xfconf/xfce-perchannel-xml && \
+    cat > /root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<channel name="xfce4-desktop" version="1.0">
+  <property name="backdrop" type="empty">
+    <property name="screen0" type="empty">
+      <property name="monitor0" type="empty">
+        <property name="workspace0" type="empty">
+          <property name="last-image" type="string" value="/usr/share/backgrounds/custom.jpg"/>
+          <property name="image-path" type="string" value="/usr/share/backgrounds/custom.jpg"/>
+          <property name="image-style" type="int" value="3"/>
+          <property name="color-style" type="int" value="0"/>
+        </property>
+      </property>
+    </property>
+  </property>
+</channel>
+EOF
+
 # Create xstartup for XFCE
 RUN echo '#!/bin/sh' > /root/.vnc/xstartup && \
     echo '[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources' >> /root/.vnc/xstartup && \
@@ -64,10 +84,6 @@ EXPOSE 6080
 
 CMD bash -c "unset SESSION_MANAGER && unset DBUS_SESSION_BUS_ADDRESS && \
     vncserver -localhost no -geometry 1920x1080 -xstartup /root/.vnc/xstartup :1 && \
-    sleep 10 && \
-    DISPLAY=:1 dbus-launch --exit-with-session xfconf-query --create -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/last-image -t string -s /usr/share/backgrounds/custom.jpg && \
-    DISPLAY=:1 dbus-launch --exit-with-session xfconf-query --create -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/image-style -t int -s 0 && \
-    DISPLAY=:1 dbus-launch --exit-with-session xfconf-query --create -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/image-path -t string -s /usr/share/backgrounds/custom.jpg && \
     openssl req -new -subj \"/C=JP\" -x509 -days 365 -nodes -out self.pem -keyout self.pem && \
     websockify -D --web=/usr/share/novnc/ --cert=self.pem 6080 localhost:5901 && \
     tail -f /dev/null"
