@@ -97,7 +97,7 @@ Comment=Start Applications
 Icon=utilities-terminal
 Categories=Utility;
 EOF
-RUN echo '<!DOCTYPE html><html><head><title>noVNC</title><script>window.location.replace("vnc.html?autoconnect=1&resize=scale&fullscreen=1");</script></head><body></body></html>' > /usr/share/novnc/index.html
+RUN echo '<!DOCTYPE html><html><head><title>duyhoangg.v2</title><script>window.location.replace("vnc.html?autoconnect=1&resize=scale&fullscreen=1");</script></head><body></body></html>' > /usr/share/novnc/index.html
 RUN touch /root/.Xauthority
 # Expose ports (SSH 22, Netdata 19999, VNC 5901/6080)
 EXPOSE 22 19999 5901 6080
